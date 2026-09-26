@@ -67,6 +67,24 @@ export type TelegramProcessedUpdateDoc = {
   createdAt: Date;
 };
 
+/** Collection `discordEvents`. Discord announcements discovered by the Excela bot. */
+export type DiscordEventDoc = {
+  _id?: ObjectId;
+  userId: ObjectId;
+  guildId: string;
+  guildName?: string;
+  channelId: string;
+  channelName?: string;
+  messageId: string;
+  messageUrl?: string;
+  author?: string;
+  contentPreview?: string;
+  events: Array<{ course: string; title: string; date: string }>;
+  status: "pending" | "approved" | "ignored";
+  createdAt: Date;
+  updatedAt: Date;
+};
+
 /** Collection `sessions`. Expired documents are removed by a MongoDB TTL index. */
 export type SessionDoc = {
   /** SHA-256 of the random session token kept in the browser cookie. */

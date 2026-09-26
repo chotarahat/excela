@@ -639,6 +639,7 @@ export default function HomeClient({ initialSession }: { initialSession: Session
         <nav aria-label="Planner settings" className={styles.sidebarNav}>
           <PendingLink href="/setup" className={styles.sidebarAction}>Planner &amp; API settings ↗</PendingLink>
           <PendingLink href="/telegram" className={styles.sidebarAction}>Telegram bot ↗</PendingLink>
+          <PendingLink href="/discord" className={styles.sidebarAction}>Discord announcements ↗</PendingLink>
         </nav>
       </aside>
       {sidebarOpen && <button type="button" className={styles.backdrop} aria-label="Close sidebar" onClick={() => setSidebarOpen(false)} />}

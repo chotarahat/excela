@@ -5,6 +5,7 @@ import type {
   TelegramLinkingTokenDoc,
   TelegramProcessedUpdateDoc,
   UserDoc,
+  DiscordEventDoc,
 } from "@/lib/models";
 import type { PendingConfirmation } from "@/lib/agent/confirmations";
 
@@ -33,6 +34,8 @@ export function getDb(): Promise<Db> {
         db.collection<TelegramLinkingTokenDoc>("telegram_linking_tokens").createIndex({ expiresAt: 1 }, { expireAfterSeconds: 0 }),
         db.collection<TelegramConversationDoc>("telegram_conversations").createIndex({ updatedAt: 1 }, { expireAfterSeconds: 30 * 24 * 60 * 60 }),
         db.collection<TelegramProcessedUpdateDoc>("telegram_processed_updates").createIndex({ createdAt: 1 }, { expireAfterSeconds: 3600 }),
+        db.collection<DiscordEventDoc>("discordEvents").createIndex({ userId: 1, status: 1, createdAt: -1 }),
+        db.collection<DiscordEventDoc>("discordEvents").createIndex({ userId: 1, messageId: 1 }, { unique: true }),
       ]).catch((error) => {
         console.error("Creating MongoDB indexes failed:", error instanceof Error ? error.message : error);
       });
@@ -72,3 +75,7 @@ export async function telegramProcessedUpdatesCollection() {
 }
 
 
+
+export async function discordEventsCollection() {
+  return (await getDb()).collection<DiscordEventDoc>("discordEvents");
+}
