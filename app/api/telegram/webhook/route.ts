@@ -14,6 +14,7 @@ import {
 import { decrypt } from "@/lib/crypto";
 import { normalizeOllamaKey } from "@/lib/ollama-key";
 import { AgentError, runSmartAgent } from "@/lib/agent/agent";
+import { formatNextSevenDaysTelegramSchedule, getNextSevenDaysForTelegram } from "@/lib/telegram/week";
 
 export const runtime = "nodejs";
 export const maxDuration = 60;
@@ -36,6 +37,7 @@ You can chat with me naturally to manage your Google Sheets planner.
 
 💬 Commands:
 • /start [code] — Link your account or view status
+• /week — Show the next 7 days from today
 • /clear — Reset conversation context
 • /disconnect — Disconnect Telegram from your Excela account
 • /help — Show this help message`;
@@ -103,6 +105,41 @@ export async function POST(request: Request) {
             "Welcome to Excela! 👋\n\nTo connect your Telegram account to your Excela planner, generate a linking code from the Telegram settings page in the Excela web app.",
           );
         }
+      }
+
+      return Response.json({ ok: true });
+    }
+
+    // Command: /week — read exactly today + the following 6 days from the existing planner service.
+    if (text === "/week" || text.startsWith("/week@")) {
+      const user = await findUserByTelegramId(sender.id);
+      if (!user) {
+        await sendTelegramReply(
+          chatId,
+          "Your Telegram account is not connected to Excela.\n\nPlease connect it from the Excela web settings first.",
+        );
+        return Response.json({ ok: true });
+      }
+
+      if (!user.sheetId) {
+        await sendTelegramReply(
+          chatId,
+          "Please connect a Google Sheets planner in Excela web setup before using /week.",
+        );
+        return Response.json({ ok: true });
+      }
+
+      void sendTelegramChatAction(chatId, "typing");
+
+      try {
+        const today = new Date().toISOString().slice(0, 10);
+        const days = await getNextSevenDaysForTelegram(user, today);
+        const reply = formatNextSevenDaysTelegramSchedule(days);
+        await sendTelegramReply(chatId, reply);
+      } catch (error) {
+        console.error("Telegram /week error:", error);
+        const message = error instanceof Error ? error.message : "Could not read your planner right now. Please try again.";
+        await sendTelegramReply(chatId, `Could not load your schedule. ${message}`);
       }
 
       return Response.json({ ok: true });
